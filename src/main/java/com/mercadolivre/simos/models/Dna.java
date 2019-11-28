@@ -4,6 +4,7 @@
 package com.mercadolivre.simos.models;
 
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * @author Kaio
@@ -11,25 +12,26 @@ import java.util.Arrays;
  */
 public class Dna {
 	
-	private String [] dna;
+	private List<String> dna;
 
 	/**
 	 * @return the dna
 	 */
-	public String[] getDna() {
+	public List<String> getDna() {
 		return dna;
 	}
 
 	/**
 	 * @param dna the dna to set
 	 */
-	public void setDna(String[] dna) {
+	public void setDna(List<String> dna) {
 		this.dna = dna;
 	}
 
 	@Override
 	public String toString() {
-		return "Dna [dna=" + Arrays.toString(dna) + "]";
+		return "Dna [dna=" + dna + "]";
 	}
 
+	
 }

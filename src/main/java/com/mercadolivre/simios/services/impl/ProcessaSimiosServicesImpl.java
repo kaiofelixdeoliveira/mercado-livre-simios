@@ -1,5 +1,8 @@
 package com.mercadolivre.simios.services.impl;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +22,7 @@ public class ProcessaSimiosServicesImpl implements ProcessaSimiosServices {
 	@Autowired
 	private SimiosRepository simiosRepository;
 
+	
 	/*
 	 * String[] dna = { "CTGAGA", "CTAGGC", "TATTGT", "AGAGGG", "CCCCTA", "TCACTG"
 	 * };
@@ -32,19 +36,19 @@ public class ProcessaSimiosServicesImpl implements ProcessaSimiosServices {
 
 	public boolean isSimian(Dna dna) {
 
-		String[][] dnaMatrix = DoMatrix(dna.getDna());
+		List<ArrayList<String>> dnaMatrixList = DoMatrixList(dna.getDna());
 
 		int countWordSequenceEqualsMax = 0;
 
-		countWordSequenceEqualsMax += readVerticalOrHorizontal(dnaMatrix, Flux.Vertical);
-		countWordSequenceEqualsMax += readVerticalOrHorizontal(dnaMatrix, Flux.Horizontal);
+		countWordSequenceEqualsMax += readVerticalOrHorizontal(dnaMatrixList, Flux.Vertical);
+		countWordSequenceEqualsMax += readVerticalOrHorizontal(dnaMatrixList, Flux.Horizontal);
 
-		countWordSequenceEqualsMax += cursorDiagonalLeftToRight(dnaMatrix);
-		countWordSequenceEqualsMax += cursorDiagonalRightToLeft(dnaMatrix);
+		countWordSequenceEqualsMax += cursorDiagonalLeftToRight(dnaMatrixList);
+		countWordSequenceEqualsMax += cursorDiagonalRightToLeft(dnaMatrixList);
 
-		log.info("##################################################");
+		log.info("--------------------------------------------------");
 		log.info("Total de sequencias de quatro letras encontradas: " + countWordSequenceEqualsMax);
-		log.info("##################################################");
+		log.info("--------------------------------------------------");
 
 		if (countWordSequenceEqualsMax > 1) {
 
@@ -67,56 +71,60 @@ public class ProcessaSimiosServicesImpl implements ProcessaSimiosServices {
 	 * @param dna
 	 * @return
 	 */
-	static String[][] DoMatrix(String dna[]) {
+	static List<ArrayList<String>> DoMatrixList(List<String> dna) {
 
-		String dnaMatrix[][] = new String[dna.length][6];
+		System.out.println("Generating matrix...");
 
-		for (int row = 0; row < dna.length; row++) {
+		List<ArrayList<String>> matrix = new ArrayList<ArrayList<String>>();
+
+		for (int row = 0; row < dna.size(); row++) {
+
+			ArrayList<String> rowList = new ArrayList<String>();
 
 			int indexCol = 0;
 			for (int col = 1; col <= 6; col++) {
 
-				dnaMatrix[row][indexCol] = dna[row].substring(indexCol, col);
-
-				System.out.print("[" + dnaMatrix[row][indexCol] + "]");
+				rowList.add(indexCol, dna.get(row).substring(indexCol, col));
 
 				indexCol++;
 
 			}
 
-			System.out.println("");
+			matrix.add(rowList);
+			System.out.println(rowList.toString());
 
 		}
+		return matrix;
 
-		return dnaMatrix;
 	}
+	
 
 	/**
 	 * 
 	 * Controla o cursor da diagonal da direita para a esquerda
 	 * 
-	 * @param dna
+	 * @param dnaMatrixList
 	 * @return
 	 */
 
-	static int cursorDiagonalRightToLeft(String[][] dna) {
+	static int cursorDiagonalRightToLeft(List<ArrayList<String>> dnaMatrixList) {
 
 		int countWordSequenceEqualsMax = 0;
 		log.info("");
 		log.info("Lendo matriz na diagonal da direita para a esquerda...");
 		// ler da direita para a esquerda
-		for (int cursorRow = 0; cursorRow < dna.length; cursorRow++) {
+		for (int cursorRow = 0; cursorRow < dnaMatrixList.size(); cursorRow++) {
 
 			log.info("Movendo cursor para linha: " + cursorRow);
 
 			if (cursorRow == 0) {
 
-				for (int cursorCol = dna.length - 1; cursorCol > 0; cursorCol--) {
+				for (int cursorCol = dnaMatrixList.size() - 1; cursorCol > 0; cursorCol--) {
 
 					if (cursorCol >= 3) {
 
-						countWordSequenceEqualsMax += readDiagonaisRightToLeftAndLeftToRight(cursorCol, cursorRow, dna,
-								Flux.DiagonalRightToLeft);
+						countWordSequenceEqualsMax += readDiagonaisRightToLeftAndLeftToRight(cursorCol, cursorRow,
+								dnaMatrixList, Flux.DiagonalRightToLeft);
 					}
 				}
 
@@ -125,8 +133,8 @@ public class ProcessaSimiosServicesImpl implements ProcessaSimiosServices {
 				// linhas na posição <3 não possuem mais que 3 sequencias, portanto são
 				// //excluidas
 				if (cursorRow < 3) {
-					countWordSequenceEqualsMax += readDiagonaisRightToLeftAndLeftToRight(dna.length - 1, cursorRow, dna,
-							Flux.DiagonalRightToLeft);
+					countWordSequenceEqualsMax += readDiagonaisRightToLeftAndLeftToRight(dnaMatrixList.size() - 1,
+							cursorRow, dnaMatrixList, Flux.DiagonalRightToLeft);
 				}
 			}
 
@@ -141,25 +149,25 @@ public class ProcessaSimiosServicesImpl implements ProcessaSimiosServices {
 	 * 
 	 * Controla o cursor da diagonal da esquerda para a direita
 	 * 
-	 * @param dna
+	 * @param dnaMatrixList
 	 * @return
 	 */
-	static int cursorDiagonalLeftToRight(String[][] dna) {
+	static int cursorDiagonalLeftToRight(List<ArrayList<String>> dnaMatrixList) {
 
 		int countWordSequenceEqualsMax = 0;
 
 		log.info("Lendo matriz na diagonal da esquerda para a direita...");
-		for (int cursorRow = 0; cursorRow < dna.length; cursorRow++) {
+		for (int cursorRow = 0; cursorRow < dnaMatrixList.size(); cursorRow++) {
 
 			log.info("Movendo cursor para linha: " + cursorRow);
 
 			if (cursorRow == 0) {
 
-				for (int cursorCol = 0; cursorCol < dna.length; cursorCol++) {
+				for (int cursorCol = 0; cursorCol < dnaMatrixList.size(); cursorCol++) {
 
 					if (cursorCol < 3) {
-						countWordSequenceEqualsMax += readDiagonaisRightToLeftAndLeftToRight(cursorCol, cursorRow, dna,
-								Flux.DiagonalLeftToRight);
+						countWordSequenceEqualsMax += readDiagonaisRightToLeftAndLeftToRight(cursorCol, cursorRow,
+								dnaMatrixList, Flux.DiagonalLeftToRight);
 					}
 				}
 
@@ -169,7 +177,7 @@ public class ProcessaSimiosServicesImpl implements ProcessaSimiosServices {
 				// //excluidas
 
 				if (cursorRow < 3) {
-					countWordSequenceEqualsMax += readDiagonaisRightToLeftAndLeftToRight(0, cursorRow, dna,
+					countWordSequenceEqualsMax += readDiagonaisRightToLeftAndLeftToRight(0, cursorRow, dnaMatrixList,
 							Flux.DiagonalLeftToRight);
 				}
 			}
@@ -224,27 +232,29 @@ public class ProcessaSimiosServicesImpl implements ProcessaSimiosServices {
 	 * 
 	 * @param cursorCol
 	 * @param cursorRow
-	 * @param dna
+	 * @param dnaMatrixList
 	 * @return
 	 */
 	static int readDiagonaisRightToLeftAndLeftToRight(int cursorCol, int cursorRow, //
-			String[][] dna, Flux flux) {
+			List<ArrayList<String>> dnaMatrixList, Flux flux) {
 
 		int countWordSequenceEquals = 0;
 		int countWordSequenceEqualsMax = 0;
 		String wordSequence = "";
+	
 
 		int indexCol = cursorCol;//
 
-		for (int row = cursorRow; row < dna.length; row++) {
+		for (int row = cursorRow; row < dnaMatrixList.size(); row++) {
 
-			if (indexCol < 0 || indexCol == dna.length) {
+			if (indexCol < 0 || indexCol == dnaMatrixList.size()) {
 				break;
 			}
 
-			log.info(flux.toString() + "-L{" + row + "}: C-{" + indexCol + "} :[" + dna[row][indexCol] + "]");//
+			log.info(flux.toString() + "-L{" + row + "}: C-{" + cursorCol + "} :["
+					+ dnaMatrixList.get(row).get(cursorCol) + "]");//
 
-			if (wordSequence.contains(dna[row][indexCol])) {
+			if (wordSequence.contains(dnaMatrixList.get(row).get(indexCol))) {
 
 				countWordSequenceEquals++;
 
@@ -256,12 +266,12 @@ public class ProcessaSimiosServicesImpl implements ProcessaSimiosServices {
 			// faz três comparações para descobir uma sequencia de quatro letras
 			// Exemplo: G=>G=>G=>G
 			if (countWordSequenceEquals == 3) {
-
+				
 				countWordSequenceEquals = 0;
 				countWordSequenceEqualsMax++;
 
 			}
-			wordSequence = dna[row][indexCol];
+			wordSequence = dnaMatrixList.get(row).get(indexCol);
 
 			if (flux == Flux.DiagonalRightToLeft) {
 				indexCol--;
@@ -274,7 +284,7 @@ public class ProcessaSimiosServicesImpl implements ProcessaSimiosServices {
 
 	}
 
-	static int readVerticalOrHorizontal(String[][] dna, Flux flux) {
+	static int readVerticalOrHorizontal(List<ArrayList<String>> dnaMatrixList, Flux flux) {
 
 		int colAux = 0;
 		int rowAux = 0;
@@ -284,9 +294,9 @@ public class ProcessaSimiosServicesImpl implements ProcessaSimiosServices {
 
 		log.info("Lendo matriz na " + flux.toString());
 
-		for (int col = 0; col < dna.length; col++) {
+		for (int col = 0; col < dnaMatrixList.size(); col++) {
 
-			for (int row = 0; row < dna.length; row++) {
+			for (int row = 0; row < dnaMatrixList.size(); row++) {
 
 				if (flux == Flux.Horizontal) {
 
@@ -297,9 +307,10 @@ public class ProcessaSimiosServicesImpl implements ProcessaSimiosServices {
 					colAux = col;
 					rowAux = row;
 				}
-				log.info(flux.toString() + "-L{" + rowAux + "}: C-{" + colAux + "} :[" + dna[rowAux][colAux] + "]");//
+				log.info(flux.toString() + "-L{" + rowAux + "}: C-{" + colAux + "} :["
+						+ dnaMatrixList.get(rowAux).get(colAux) + "]");//
 
-				if (wordSequence.contains(dna[rowAux][colAux])) {
+				if (wordSequence.contains(dnaMatrixList.get(rowAux).get(colAux))) {
 
 					countWordSequenceEquals++;
 
@@ -312,11 +323,12 @@ public class ProcessaSimiosServicesImpl implements ProcessaSimiosServices {
 				// Exemplo: G=>G=>G=>G
 				if (countWordSequenceEquals == 3) {
 
+					
 					countWordSequenceEquals = 0;
 					countWordSequenceEqualsMax++;
 
 				}
-				wordSequence = dna[rowAux][colAux];
+				wordSequence = dnaMatrixList.get(rowAux).get(colAux);
 
 			}
 		}
